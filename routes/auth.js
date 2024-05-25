@@ -15,22 +15,21 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        
         const { email, password } = req.body;
-        const user =await User.findOne({ email });
+        const user = await User.findOne({ email });
+
         if (!user) {
-            res.status(200).json({ message: "please register first" });
+            return res.status(200).json({ message: "please register first" });
         }
-        
-        if (req.body.password!==user.password) {
-            res.status(200).json({message:"Invalid Password"})
+
+        if (password !== user.password) {
+            return res.status(200).json({ message: "Invalid Password" });
         }
-        
-        res.status(200).json({user});
+
+        res.status(200).json({ userDoc: { userId: user._id },message:"Login successful" });
+    } catch (err) {
+        res.status(500).json({ message: "Login failed", error: err });
     }
-    catch (err) {
-        res.status(400).json({message:"Loggin again" + err})
-    }
-})
+});
 
 module.exports = router;

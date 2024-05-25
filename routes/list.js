@@ -2,8 +2,8 @@ const router = require('express').Router();
 const User = require("../model/user");
 const List = require("../model/list");
 router.post('/AddTodo', async (req, res) => {
-    const { title, body, email } = req.body;
-    const isexistuser = await User.findOne({ email });
+    const { title, body, id } = req.body;
+    const isexistuser = await User.findById(id);
     try {
         if (isexistuser) {
             const list = new List({ title, body, user: isexistuser });
@@ -33,19 +33,28 @@ router.put('/UpdateTodo/:id', async (req, res) => {
     }
 });
 router.delete('/DeleteTodo/:id', async (req, res) => {
-    const { email } = req.body;
-    const { id } = req.params;
-    const isexistuser = await User.findOneAndUpdate({ email },{ $pull: { list: id } });
+    const { id } = req.body; // This is the user ID
+    const listId = req.params.id; // This is the todo ID
+
     try {
-        if (isexistuser) {
-            await List.findByIdAndDelete(id);
-            res.status(200).json({ message: "deleted" })
+        // Find and update the user to pull the list item
+        const isExistUser = await User.findByIdAndUpdate(
+            id,
+            { $pull: { list: listId } },
+            { new: true } // This returns the updated document
+        );
+
+        if (isExistUser) {
+            // Find and delete the list item
+            await List.findByIdAndDelete(listId);
+            res.status(200).json({ message: "Todo deleted" });
+        } else {
+            res.status(404).json({ message: "User not found" });
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(400).json({ message: "Error deleting todo: " + err });
     }
-})
+});
 
 router.get('/ReadList/:id', async (req, res) => {
     try {
