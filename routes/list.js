@@ -21,23 +21,25 @@ router.post('/AddTodo', async (req, res) => {
 router.put('/UpdateTodo/:id', async (req, res) => {
     const { title, body } = req.body;
     const { id } = req.params;
-    const isexistuser = await User.findOne({ email });
+
     try {
-        if (isexistuser) {
-            const updatedList = await List.findByIdAndUpdate(id, { title, body }, { new: true });
-            await updatedList.save();
+        const updatedList = await List.findByIdAndUpdate(id, { title, body }, { new: true });
+        if (updatedList) {
             res.status(200).json({ updatedList });
+        } else {
+            res.status(404).json({ message: "Todo not found" });
         }
     } catch (err) {
         res.status(400).json({ message: "Error updating todo: " + err });
     }
 });
+
 router.delete('/DeleteTodo/:id', async (req, res) => {
     const { id } = req.body; // This is the user ID
     const listId = req.params.id; // This is the todo ID
 
     try {
-        // Find and update the user to pull the list item
+        // Find and  update the user to pull the list item
         const isExistUser = await User.findByIdAndUpdate(
             id,
             { $pull: { list: listId } },
